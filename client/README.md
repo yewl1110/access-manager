@@ -14,9 +14,10 @@ dayjs.extend(timezone)
 ## 사용법
 ### local time -> utc 변환
 ```js
-dayjs.utc(Date.now()).format()
+const localTime = dayjs('2024-06-14T00:00:00')
+dayjs.utc(localTime).format()
 ```
-`2024-06-12T10:40:11Z`
+`2024-06-13T15:00:00Z`
 ### client 타임존 확인
 ```js
 dayjs.tz.guess()
@@ -24,11 +25,11 @@ dayjs.tz.guess()
 `Asia/Seoul`
 ### utc -> local time 변환
 ```js
-const utcTime = dayjs.utc(Date.now())
+const utcTime = dayjs.utc('2024-06-14T00:00:00Z')
 const timezone = dayjs.tz.guess()
-dayjs.tz(utcTime, timezone).format()
+dayjs(utcTime).tz(timezone).format()
 ```
-`2024-06-12T19:40:11+09:00`
+`2024-06-14T09:00:00+09:00`
 ## [ISO 8601](https://ko.wikipedia.org/wiki/ISO_8601) 
 - `format()`을 파라미터 없이 사용하면 ISO 8601 표기법으로 변환된다.
 - ISO 8601은 날짜와 시간과 관련된 데이터 교환을 다루는 국제 표준이다.
