@@ -10,6 +10,7 @@ export const ruleSchema = object({
   memo: string().max(20).required('필수 항목입니다.'),
   period: object({
     start: string()
+      .datetime('잘못된 날짜 형식입니다.')
       .required('필수 항목입니다.')
       .test({
         test: (value, ctx) => {
@@ -22,6 +23,7 @@ export const ruleSchema = object({
         },
       }),
     end: string()
+      .datetime('잘못된 날짜 형식입니다.')
       .required('필수 항목입니다.')
       .test({
         test: (value, ctx) => {
