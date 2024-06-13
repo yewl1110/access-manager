@@ -47,7 +47,8 @@ const rows = [
 
 export default function ListTable() {
   const [openModal, setOpenModal] = useState(false)
-  const [searchOption, setSearchOption] = useState(null) // null | 'memo' | 'period'
+  const [searchOption, setSearchOption] = useState('') // '' | 'memo' | 'period'
+
   return (
     <>
       <Grid
@@ -77,7 +78,7 @@ export default function ListTable() {
                     setSearchOption(event.target.value)
                   }}
                 >
-                  <MenuItem value={null}>
+                  <MenuItem value={''}>
                     <em>검색 조건</em>
                   </MenuItem>
                   <MenuItem value={'memo'}>내용 검색</MenuItem>
@@ -105,7 +106,7 @@ export default function ListTable() {
               <Button
                 variant="outlined"
                 sx={{ mr: 0.5 }}
-                onClick={() => setSearchOption(null)}
+                onClick={() => setSearchOption('')}
               >
                 검색 옵션 초기화
               </Button>
