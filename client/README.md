@@ -1,70 +1,45 @@
-# Getting Started with Create React App
+# dayjs utc & timezone
+- dayjs만 갖다 쓰게 된다면 항상 local timezone이 적용된다.
+- 서버에는 utc의 형태로 저장해야 하기 때문에 변환이 필요하다.
+- dayjs에서는 utc를 지원하지만 플러그인을 따로 적용해야 한다.
+## 플러그인 적용
+```js
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-
-## Available Scripts
-
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+dayjs.extend(utc)
+dayjs.extend(timezone)
+```
+## 사용법
+### local time -> utc 변환
+```js
+dayjs.utc(Date.now()).format()
+```
+`2024-06-12T10:40:11Z`
+### client 타임존 확인
+```js
+dayjs.tz.guess()
+```
+`Asia/Seoul`
+### utc -> local time 변환
+```js
+const utcTime = dayjs.utc(Date.now())
+const timezone = dayjs.tz.guess()
+dayjs.tz(utcTime, timezone).format()
+```
+`2024-06-12T19:40:11+09:00`
+## [ISO 8601](https://ko.wikipedia.org/wiki/ISO_8601) 
+- `format()`을 파라미터 없이 사용하면 ISO 8601 표기법으로 변환된다.
+- ISO 8601은 날짜와 시간과 관련된 데이터 교환을 다루는 국제 표준이다.
+### 표기법.. 
+- `<date>T<time>` 형태로 표기한다.
+- \<time> (시간 표기) 
+  - UTC
+    - 시간 뒤에 Z를 표기한다.
+    - ex)`10:40:11Z`
+  - 시간 오프셋 (local time)
+    - ±[hh]:[mm], ±[hh][mm], 혹은 ±[hh] 형식을 시간 뒤에 덧붙인다.
+    - ex)`19:40:11+09:00`
+    - 표기 시간에서 시간 오프셋만큼 빼면 UTC 시간이 나온다.
+    - `10:40:11Z`와 `19:40:11+09:00`은 같은 시간이다.
