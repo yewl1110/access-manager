@@ -13,26 +13,33 @@ import { useYupValidationResolver } from '../hooks/useYupValidationResolver'
 import { filterSchema } from '../schema/schema'
 import { useForm } from 'react-hook-form'
 import dayjs from 'dayjs'
+import useAlert from '../hooks/useAlert'
 
 export default function SearchForm({
   submit,
   setSubmitParam,
   resetSubmitParam,
+  resetTable,
 }) {
   const [searchOption, setSearchOption] = useState('') // '' | 'memo' | 'period'
+  const { alert } = useAlert()
 
   const resolver = useYupValidationResolver(filterSchema)
-  const { register, watch, setValue, reset, resetField, getValues } = useForm({
+  const {
+    register,
+    watch,
+    setValue,
+    resetField,
+    handleSubmit,
+    getValues,
+    formState: { errors },
+    clearErrors,
+  } = useForm({
     resolver,
     mode: 'all',
   })
 
   const setFilter = () => {
-    resetField('searchMemo')
-    resetField('searchPeriod')
-    resetSubmitParam('searchMemo')
-    resetSubmitParam('searchPeriod')
-
     resetSubmitParam('lastKey')
     if (searchOption === 'memo') {
       setSubmitParam('searchMemo', getValues('searchMemo'))
@@ -43,20 +50,36 @@ export default function SearchForm({
   }
 
   useEffect(() => {
-    reset()
+    resetField('searchMemo')
+    resetField('searchPeriod.start')
+    resetField('searchPeriod.end')
+    setValue('searchPeriod.start', null)
+    setValue('searchPeriod.end', null)
+    clearErrors()
   }, [searchOption])
+
+  useEffect(() => {
+    if (errors) {
+      const _errors = Object.entries(errors)
+      if (_errors.length) {
+        const [error] = _errors
+        const [, value] = error
+        alert({ message: value.message, severity: 'error' })
+      }
+    }
+  }, [errors])
 
   return (
     <>
       <Box sx={{ my: 'auto', mr: 1 }}>
         <FormControl sx={{ minWidth: 120 }} size="small">
           <Select
-            labelId="demo-select-small-label"
-            id="demo-select-small"
             displayEmpty
             value={searchOption}
             onChange={(event) => {
-              setSearchOption(event.target.value)
+              const value = event.target.value
+              setSearchOption(value)
+              setValue('searchOption', value)
             }}
           >
             <MenuItem value={''}>
@@ -75,18 +98,22 @@ export default function SearchForm({
       >
         {searchOption === 'memo' && (
           <TextField
-            id="demo-helper-text-misaligned-no-helper"
             label="검색어"
             size="small"
             sx={{ mr: 1 }}
-            {...register('searchMemo')}
+            error={!!errors['searchMemo']}
+            inputProps={{ ...register('searchMemo'), maxLength: 20 }}
+            onBlur={(event) => {
+              event.target.value = event.target.value.trim()
+            }}
           />
         )}
         {searchOption === 'period' && (
           <>
             <SmallDateTimePicker
-              label={'차단 시작 날짜'}
+              label={'차단 시작 날짜 (필수값)'}
               sx={{ mr: 1 }}
+              error={!!errors['searchPeriod.start']}
               setValue={(value) => {
                 setValue('searchPeriod.start', value)
               }}
@@ -97,8 +124,9 @@ export default function SearchForm({
               }
             />
             <SmallDateTimePicker
-              label={'차단 해제 날짜'}
+              label={'차단 해제 날짜 (선택값)'}
               sx={{ mr: 1 }}
+              error={!!errors['searchPeriod.end']}
               setValue={(value) => {
                 setValue('searchPeriod.end', value)
               }}
@@ -114,7 +142,7 @@ export default function SearchForm({
           <Button
             onClick={() => {
               setFilter()
-              submit()
+              handleSubmit(() => submit())()
             }}
           >
             검색
@@ -124,7 +152,10 @@ export default function SearchForm({
       <Box sx={{ my: 'auto', ml: 'auto' }}>
         {searchOption && (
           <ButtonWithPopover
-            handleClick={() => setSearchOption('')}
+            handleClick={() => {
+              setSearchOption('')
+              resetTable()
+            }}
             buttonText={'검색 옵션 초기화'}
             message={'검색 옵션을 초기화 후 1페이지부터 다시 불러옵니다.'}
           />
