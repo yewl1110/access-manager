@@ -1,3 +1,10 @@
 body {
     margin:0;
 }
+
+.data-grid-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+}

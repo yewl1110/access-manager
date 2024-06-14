@@ -1,4 +1,4 @@
-import { Container } from '@mui/material'
+import { Box, Container } from '@mui/material'
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import ListTable from './components/ListTable'
@@ -13,14 +13,18 @@ export default function App() {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Container
-        maxWidth="md"
+        maxWidth="lg"
+        fixed
         sx={{
           height: '100vh',
           display: 'flex',
-          overflowY: 'hidden',
+          flexDirection: 'column',
+          justifyContent: 'center',
         }}
       >
-        <ListTable />
+        <Box>
+          <ListTable />
+        </Box>
       </Container>
     </LocalizationProvider>
   )

@@ -40,7 +40,7 @@ const SmallDateTimePicker = React.forwardRef(
         <CustomDateTimePicker
           error={error}
           inputRef={ref}
-          format={`YYYY-MM-DD hh:mm A [(${dayjs.tz.guess()})]`}
+          format={`YYYY-MM-DD hh:mm A${props?.showTimezone ? ` [(${dayjs.tz.guess()})]` : ''}`}
           onChange={(value) => {
             setValue(dayjs.utc(value).format())
           }}
