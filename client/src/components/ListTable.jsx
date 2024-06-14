@@ -2,44 +2,13 @@ import Grid from '@mui/material/Unstable_Grid2'
 import { Box, Button, Paper } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import AddRuleDialog from './AddRuleDialog'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import SearchForm from './SearchForm'
 import { useForm } from 'react-hook-form'
 import { useYupValidationResolver } from '../hooks/useYupValidationResolver'
 import { listSchema } from '../schema/schema'
 import { listTableColumns } from '../dataGridMetadata'
-
-const columns = [
-  { field: 'id', headerName: 'ID', width: 70 },
-  { field: 'firstName', headerName: 'First name', width: 130 },
-  { field: 'lastName', headerName: 'Last name', width: 130 },
-  {
-    field: 'age',
-    headerName: 'Age',
-    type: 'number',
-    width: 90,
-  },
-  {
-    field: 'fullName',
-    headerName: 'Full name',
-    description: 'This column has a value getter and is not sortable.',
-    sortable: false,
-    width: 160,
-    valueGetter: (value, row) => `${row.firstName || ''} ${row.lastName || ''}`,
-  },
-]
-
-const rows = [
-  { id: 1, lastName: 'Snow', firstName: 'Jon', age: 35 },
-  { id: 2, lastName: 'Lannister', firstName: 'Cersei', age: 42 },
-  { id: 3, lastName: 'Lannister', firstName: 'Jaime', age: 45 },
-  { id: 4, lastName: 'Stark', firstName: 'Arya', age: 16 },
-  { id: 5, lastName: 'Targaryen', firstName: 'Daenerys', age: null },
-  { id: 6, lastName: 'Melisandre', firstName: null, age: 150 },
-  { id: 7, lastName: 'Clifford', firstName: 'Ferrara', age: 44 },
-  { id: 8, lastName: 'Frances', firstName: 'Rossini', age: 36 },
-  { id: 9, lastName: 'Roxie', firstName: 'Harvey', age: 65 },
-]
+import useLoading from '../hooks/useLoading'
 
 export default function ListTable() {
   const [openModal, setOpenModal] = useState(false)
@@ -47,39 +16,53 @@ export default function ListTable() {
     pageSize: 10,
     page: 0,
   })
-  const [rows, setRows] = useState([])
+  const [rowsData, setRowsData] = useState(null)
+  const { loading } = useLoading()
   const resolver = useYupValidationResolver(listSchema)
+  const lastKey = useRef([])
   const {
     handleSubmit,
-    watch,
     formState: { errors },
     setValue,
     resetField,
   } = useForm({ resolver, mode: 'all', defaultValues: { limit: 10 } })
 
-  const submit = async (data) => {
-    const response = await fetch(
-      process.env.REACT_APP_API_URL + '/access-rule/list',
-      {
-        method: 'POST',
-        headers: new Headers({ 'content-type': 'application/json' }),
-        body: JSON.stringify(data),
-      }
+  const submit = async (data, option) => {
+    const response = await loading(() =>
+      fetch(
+        process.env.REACT_APP_API_URL +
+          `/access-rule/list${option ? `/${option}` : ''}`,
+        {
+          method: 'POST',
+          headers: new Headers({ 'content-type': 'application/json' }),
+          body: JSON.stringify(data),
+        }
+      )
     )
     if (response.ok) {
       const data = await response.json()
-      setRows(data)
+      const [firstData] = data?.data.slice(0, 1)
+      const [lastData] = data?.data.slice(-1)
+      lastKey.current = [firstData?.key, lastData?.key]
+
+      setRowsData(data)
     }
   }
 
   useEffect(() => {
-    const [lastData] = rows.slice(-1)
-    setValue('lastKey', lastData?.key)
-  }, [rows])
-
-  useEffect(() => {
-    handleSubmit(submit, console.log)()
+    fetchCurrentPage()
   }, [])
+
+  const resetTable = () => {
+    setPaginationModel({ ...paginationModel, page: 0 })
+    setValue('searchMemo', null)
+    setValue('searchPeriod', null)
+    setValue('searchOption', '')
+    fetchCurrentPage()
+  }
+  const fetchCurrentPage = (...restParam) => {
+    handleSubmit((data) => submit(data, ...restParam))()
+  }
 
   return (
     <>
@@ -100,7 +83,11 @@ export default function ListTable() {
             }}
           >
             <SearchForm
-              submit={handleSubmit(submit)}
+              resetTable={resetTable}
+              submit={() => {
+                setPaginationModel({ ...paginationModel, page: 0 })
+                fetchCurrentPage()
+              }}
               setSubmitParam={setValue}
               resetSubmitParam={resetField}
             />
@@ -116,7 +103,7 @@ export default function ListTable() {
           </Grid>
           <Grid>
             <DataGrid
-              rows={rows}
+              rows={rowsData?.data ?? []}
               columns={listTableColumns}
               initialState={{
                 pagination: {
@@ -125,24 +112,39 @@ export default function ListTable() {
               }}
               onPaginationModelChange={(model) => {
                 const isNext = paginationModel.page < model.page
+                const [prevKey, nextKey] = lastKey.current
+                setValue('lastKey', isNext ? nextKey : prevKey)
                 setPaginationModel(model)
-                console.log('isNext' + isNext)
-                handleSubmit(submit, console.log)()
+                if (model.page > 0) {
+                  fetchCurrentPage(isNext ? 'next' : 'prev')
+                } else {
+                  fetchCurrentPage()
+                }
               }}
               paginationMode="server"
               paginationModel={paginationModel}
-              rowCount={100}
+              rowCount={rowsData?.count ?? 0}
               sx={{
                 '& .MuiDataGrid-overlayWrapper': { height: '100px' },
                 '& .MuiDataGrid-virtualScrollerContent': {
                   overflowY: 'hidden',
                 },
+                '& .MuiDataGrid-scrollbar': { display: 'none' },
               }}
             />
           </Grid>
         </Paper>
       </Grid>
-      {openModal && <AddRuleDialog close={() => setOpenModal(false)} />}
+      {openModal && (
+        <AddRuleDialog
+          close={() => setOpenModal(false)}
+          closeCallback={() => {
+            if (paginationModel.page === 0) {
+              fetchCurrentPage()
+            }
+          }}
+        />
+      )}
     </>
   )
 }

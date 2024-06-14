@@ -15,19 +15,34 @@ import { useYupValidationResolver } from '../hooks/useYupValidationResolver'
 import { ruleSchema } from '../schema/schema'
 import { useForm } from 'react-hook-form'
 import dayjs from 'dayjs'
+import useLoading from '../hooks/useLoading'
+import useAlert from '../hooks/useAlert'
 
-export default function AddRuleDialog({ close }) {
+export default function AddRuleDialog({ close, closeCallback }) {
   const resolver = useYupValidationResolver(ruleSchema)
+  const { loading } = useLoading()
+  const { alert } = useAlert()
   const {
     handleSubmit,
     register,
     watch,
     formState: { errors },
     setValue,
-  } = useForm({ resolver })
+  } = useForm({ resolver, mode: 'all' })
 
-  const submit = (data) => {
-    console.log(data)
+  const submit = async (data) => {
+    const response = await loading(() =>
+      fetch(process.env.REACT_APP_API_URL + '/access-rule', {
+        method: 'POST',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        body: JSON.stringify(data),
+      })
+    )
+    if (response.ok) {
+      alert({ message: '규칙을 추가했습니다.', severity: 'success' })
+      closeCallback()
+      close()
+    }
   }
 
   const AddDayButton = ({ day }) => {
@@ -36,7 +51,7 @@ export default function AddRuleDialog({ close }) {
         size="small"
         onClick={() => {
           const start = dayjs(watch('period.start'))
-          setValue('period.end', start.add(day, 'day'))
+          setValue('period.end', dayjs.utc(start.add(day, 'day')).format())
         }}
       >
         {`+${day}D`}
@@ -60,8 +75,8 @@ export default function AddRuleDialog({ close }) {
         <Icon>close</Icon>
       </IconButton>
       <DialogContent dividers>
-        <Grid2 container spacing={2} columns={1}>
-          <Grid2 xs={1}>
+        <Grid2 container spacing={2} columns={4}>
+          <Grid2 xs={3}>
             <Box>
               <TextField
                 label="차단 할 IP 주소 ex) 100.10.1.1"
@@ -74,7 +89,21 @@ export default function AddRuleDialog({ close }) {
               />
             </Box>
           </Grid2>
-          <Grid2 xs={1}>
+          <Grid2
+            xs={1}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
+          >
+            <Box>
+              <Button size={'small'} variant="outlined">
+                내 IP 등록
+              </Button>
+            </Box>
+          </Grid2>
+          <Grid2 xs={4}>
             <Box>
               <TextField
                 label="설명 (최대 20자)"
@@ -89,11 +118,12 @@ export default function AddRuleDialog({ close }) {
               />
             </Box>
           </Grid2>
-          <Grid2 xs={1}>
+          <Grid2 xs={4}>
             <SmallDateTimePicker
               label="차단 시작 날짜"
               error={!!errors['period.start']}
               helperText={errors['period.start']?.message}
+              showTimezone
               setValue={(value) => {
                 setValue('period.start', value)
               }}
@@ -109,11 +139,12 @@ export default function AddRuleDialog({ close }) {
               </>
             )}
           </Grid2>
-          <Grid2 xs={1}>
+          <Grid2 xs={4}>
             <SmallDateTimePicker
               label="차단 해제 날짜"
               error={!!errors['period.end']}
               helperText={errors['period.end']?.message}
+              showTimezone
               setValue={(value) => {
                 setValue('period.end', value)
               }}
