@@ -8,10 +8,10 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Getter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table
@@ -22,5 +22,13 @@ public class Rule {
     private String memo;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+    private Timestamp created;
 
+    @Builder
+    public Rule(String ip, String memo, LocalDateTime startDate, LocalDateTime endDate) {
+        this.ip = ip;
+        this.memo = memo;
+        this.startDate = startDate;
+        this.endDate = endDate;
+    }
 }

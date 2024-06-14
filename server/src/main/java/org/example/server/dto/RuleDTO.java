@@ -4,5 +4,6 @@ public record RuleDTO (
         Long id,
         String ip,
         String memo,
-        PeriodDTO period
+        PeriodDTO period,
+        Long key
 ) {}
