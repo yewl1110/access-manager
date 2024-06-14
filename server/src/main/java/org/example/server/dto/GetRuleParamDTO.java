@@ -4,6 +4,6 @@ public record GetRuleParamDTO(
         Integer limit,
         Long lastKey,
         String searchMemo,
-        PeriodDTO searchPeriod
+        Period searchPeriod
 ) {}
 

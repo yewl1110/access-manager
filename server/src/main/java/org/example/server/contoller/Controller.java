@@ -30,11 +30,11 @@ public class Controller {
 
     @PostMapping("/access-rule/list")
     public ResponseEntity<?> getRule(@Valid @RequestBody GetRuleParamDTO param) {
-        return ResponseEntity.ok().body(ruleService.getRules(param.limit()));
+        return ResponseEntity.ok().body(ruleService.getRules(param));
     }
 
     @PostMapping("/access-rule/list/{option:prev|next}")
     public ResponseEntity<?> getRule(@Valid @RequestBody GetRuleParamDTO param, @PathVariable("option") String option) {
-        return ResponseEntity.ok().body(ruleService.getRules(param.lastKey(), param.limit(), option));
+        return ResponseEntity.ok().body(ruleService.getRules(param, option));
     }
 }

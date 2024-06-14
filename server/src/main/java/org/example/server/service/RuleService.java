@@ -2,6 +2,7 @@ package org.example.server.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.server.dto.AddRuleDTO;
+import org.example.server.dto.GetRuleParamDTO;
 import org.example.server.dto.PageDTO;
 import org.example.server.dto.RuleDTO;
 import org.example.server.entity.Rule;
@@ -26,19 +27,19 @@ public class RuleService {
         return true;
     }
 
-    public PageDTO<RuleDTO> getRules(int limit) {
-        List<Rule> rules = ruleRepository.getListByTimestamp(limit);
-        return new PageDTO<>(ruleMapper.toDTOList(rules), ruleRepository.count());
+    public PageDTO<RuleDTO> getRules(GetRuleParamDTO param) {
+        List<Rule> rules = ruleRepository.getListByTimestamp(param);
+        return new PageDTO<>(ruleMapper.toDTOList(rules), ruleRepository.getCount(param));
     }
 
-    public PageDTO<RuleDTO> getRules(Long lastKey, int limit, String option) {
+    public PageDTO<RuleDTO> getRules(GetRuleParamDTO param, String option) {
         List<Rule> rules = null;
         if("prev".equals(option)) {
-            rules = ruleRepository.getListByTimestampLessThan(new Timestamp(lastKey), limit);
+            rules = ruleRepository.getListByTimestampLessThan(param);
             Collections.reverse(rules);
         } else {
-            rules = ruleRepository.getListByTimestampGreaterThan(new Timestamp(lastKey), limit);
+            rules = ruleRepository.getListByTimestampGreaterThan(param);
         }
-        return new PageDTO<>(ruleMapper.toDTOList(rules), ruleRepository.count());
+        return new PageDTO<>(ruleMapper.toDTOList(rules), ruleRepository.getCount(param));
     }
 }

@@ -31,4 +31,8 @@ public class Rule {
         this.startDate = startDate;
         this.endDate = endDate;
     }
+
+    public void setRuleId(Long id) {
+        this.id = id;
+    }
 }

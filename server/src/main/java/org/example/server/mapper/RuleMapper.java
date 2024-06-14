@@ -20,8 +20,8 @@ public abstract class RuleMapper {
     @Mapping(target="endDate", source="source.period.end")
     public abstract Rule toEntity(AddRuleDTO source);
 
-    @Mapping(target="period.start", expression = "java(formatter.format(rule.getStartDate()))")
-    @Mapping(target="period.end", expression = "java(formatter.format(rule.getEndDate()))")
+    @Mapping(target="start", expression = "java(formatter.format(rule.getStartDate()))")
+    @Mapping(target="end", expression = "java(formatter.format(rule.getEndDate()))")
     @Mapping(target="key", expression = "java(rule.getCreated().getTime())")
     public abstract RuleDTO toDTO(Rule rule);
     public abstract List<RuleDTO> toDTOList(List<Rule> list);
