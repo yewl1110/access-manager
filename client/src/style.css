@@ -8,3 +8,25 @@ body {
     justify-content: center;
     flex-direction: row;
 }
+
+@keyframes slideDown {
+    from {
+        top: -100px; /* Start from outside the top of the screen */
+    }
+    to {
+        top: 20px; /* End at the defined position */
+    }
+}
+@keyframes slideUp {
+    from {
+        top: 20px; /* Start from outside the top of the screen */
+    }
+    to {
+        top: -100px; /* End at the defined position */
+    }
+}
+
+.alert-hidden {
+    animation: slideUp 0.5s ease-out;
+}
+
