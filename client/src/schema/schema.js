@@ -1,4 +1,4 @@
-import { object, string } from 'yup'
+import { number, object, string } from 'yup'
 
 export const ruleSchema = object({
   ip: string()
@@ -37,3 +37,37 @@ export const ruleSchema = object({
       }),
   }),
 })
+
+export const filterSchema = object({
+  option: string().test({
+    test: () => {
+      return true
+    },
+  }),
+  searchMemo: string().test({
+    test: () => {
+      return true
+    },
+  }),
+  searchPeriod: object({
+    start: string()
+      .datetime()
+      .test({
+        test: () => {
+          return true
+        },
+      }),
+    end: string()
+      .datetime()
+      .test({
+        test: () => {
+          return true
+        },
+      }),
+  }),
+})
+
+export const listSchema = object({
+  lastKey: number().positive(),
+  limit: number().positive().required(),
+}).concat(filterSchema)

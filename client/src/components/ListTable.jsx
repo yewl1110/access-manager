@@ -1,17 +1,13 @@
 import Grid from '@mui/material/Unstable_Grid2'
-import {
-  Box,
-  Button,
-  FormControl,
-  MenuItem,
-  Paper,
-  Select,
-  TextField,
-} from '@mui/material'
+import { Box, Button, Paper } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import AddRuleDialog from './AddRuleDialog'
-import { useState } from 'react'
-import SmallDateTimePicker from './SmallDateTimePicker'
+import { useEffect, useState } from 'react'
+import SearchForm from './SearchForm'
+import { useForm } from 'react-hook-form'
+import { useYupValidationResolver } from '../hooks/useYupValidationResolver'
+import { listSchema } from '../schema/schema'
+import { listTableColumns } from '../dataGridMetadata'
 
 const columns = [
   { field: 'id', headerName: 'ID', width: 70 },
@@ -47,7 +43,43 @@ const rows = [
 
 export default function ListTable() {
   const [openModal, setOpenModal] = useState(false)
-  const [searchOption, setSearchOption] = useState('') // '' | 'memo' | 'period'
+  const [paginationModel, setPaginationModel] = useState({
+    pageSize: 10,
+    page: 0,
+  })
+  const [rows, setRows] = useState([])
+  const resolver = useYupValidationResolver(listSchema)
+  const {
+    handleSubmit,
+    watch,
+    formState: { errors },
+    setValue,
+    resetField,
+  } = useForm({ resolver, mode: 'all', defaultValues: { limit: 10 } })
+
+  const submit = async (data) => {
+    const response = await fetch(
+      process.env.REACT_APP_API_URL + '/access-rule/list',
+      {
+        method: 'POST',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        body: JSON.stringify(data),
+      }
+    )
+    if (response.ok) {
+      const data = await response.json()
+      setRows(data)
+    }
+  }
+
+  useEffect(() => {
+    const [lastData] = rows.slice(-1)
+    setValue('lastKey', lastData?.key)
+  }, [rows])
+
+  useEffect(() => {
+    handleSubmit(submit, console.log)()
+  }, [])
 
   return (
     <>
@@ -60,56 +92,19 @@ export default function ListTable() {
           flexDirection: 'column',
         }}
       >
-        <Paper>
+        <Paper sx={{ flexShrink: 0 }}>
           <Grid
             sx={{
               display: 'flex',
               flexDirection: 'row',
             }}
           >
-            <Box sx={{ my: 'auto', mr: 1 }}>
-              <FormControl sx={{ minWidth: 120 }} size="small">
-                <Select
-                  labelId="demo-select-small-label"
-                  id="demo-select-small"
-                  displayEmpty
-                  value={searchOption}
-                  onChange={(event) => {
-                    setSearchOption(event.target.value)
-                  }}
-                >
-                  <MenuItem value={''}>
-                    <em>검색 조건</em>
-                  </MenuItem>
-                  <MenuItem value={'memo'}>내용 검색</MenuItem>
-                  <MenuItem value={'period'}>기간 검색</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <Box
-              sx={{
-                display: 'inline-flex',
-                flexDirection: 'row',
-              }}
-            >
-              {searchOption === 'memo' && (
-                <TextField
-                  id="demo-helper-text-misaligned-no-helper"
-                  label="검색어"
-                  size="small"
-                />
-              )}
-              {searchOption === 'period' && <SmallDateTimePicker />}
-              {searchOption && <Button>검색</Button>}
-            </Box>
-            <Box sx={{ my: 'auto', ml: 'auto' }}>
-              <Button
-                variant="outlined"
-                sx={{ mr: 0.5 }}
-                onClick={() => setSearchOption('')}
-              >
-                검색 옵션 초기화
-              </Button>
+            <SearchForm
+              submit={handleSubmit(submit)}
+              setSubmitParam={setValue}
+              resetSubmitParam={resetField}
+            />
+            <Box sx={{ my: 'auto' }}>
               <Button
                 variant="contained"
                 color="success"
@@ -122,13 +117,27 @@ export default function ListTable() {
           <Grid>
             <DataGrid
               rows={rows}
-              columns={columns}
+              columns={listTableColumns}
               initialState={{
                 pagination: {
-                  paginationModel: { page: 0, pageSize: 5 },
+                  paginationModel: { page: 0, pageSize: 10 },
                 },
               }}
-              pageSizeOptions={[5, 10]}
+              onPaginationModelChange={(model) => {
+                const isNext = paginationModel.page < model.page
+                setPaginationModel(model)
+                console.log('isNext' + isNext)
+                handleSubmit(submit, console.log)()
+              }}
+              paginationMode="server"
+              paginationModel={paginationModel}
+              rowCount={100}
+              sx={{
+                '& .MuiDataGrid-overlayWrapper': { height: '100px' },
+                '& .MuiDataGrid-virtualScrollerContent': {
+                  overflowY: 'hidden',
+                },
+              }}
             />
           </Grid>
         </Paper>
