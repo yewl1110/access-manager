@@ -28,5 +28,5 @@
 
 ## 화면
 
-<img src="./image/site1.png" width="700px" title="site1"/>
-<img src="./image/site2.png" width="700px" title="site2"/>
+<img src="./image/site1.png" title="site1"/>
+<img src="./image/site2.png" title="site2"/>
