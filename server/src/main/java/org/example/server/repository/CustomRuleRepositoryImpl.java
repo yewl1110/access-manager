@@ -9,6 +9,10 @@ import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 
 @RequiredArgsConstructor
@@ -17,8 +21,8 @@ public class CustomRuleRepositoryImpl implements CustomRuleRepository {
 
     private void setFilter(StringBuilder sb, Map<String, Object> paramMap, GetRuleParamDTO paramDTO) {
         if(StringUtils.hasText(paramDTO.searchMemo())) {
-            sb.append("and memo LIKE :memo ");
-            paramMap.put("memo", paramDTO.searchMemo()+"%");
+            sb.append("and match(memo) against (:memo in boolean mode) ");
+            paramMap.put("memo", paramDTO.searchMemo());
         }
         Period period = paramDTO.searchPeriod();
         if(period != null) {
