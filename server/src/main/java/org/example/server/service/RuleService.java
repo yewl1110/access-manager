@@ -10,7 +10,6 @@ import org.example.server.mapper.RuleMapper;
 import org.example.server.repository.RuleRepository;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,7 +34,11 @@ public class RuleService {
     public PageDTO<RuleDTO> getRules(GetRuleParamDTO param, String option) {
         List<Rule> rules = null;
         if("prev".equals(option)) {
-            rules = ruleRepository.getListByTimestampLessThan(param);
+            if(param.lastKey() != null) {
+                rules = ruleRepository.getListByTimestampLessThan(param);
+            } else {
+                rules = ruleRepository.getListFirst10Data(param);
+            }
             Collections.reverse(rules);
         } else {
             rules = ruleRepository.getListByTimestampGreaterThan(param);

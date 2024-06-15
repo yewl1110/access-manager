@@ -9,5 +9,6 @@ public interface CustomRuleRepository {
     List<Rule> getListByTimestampGreaterThan(GetRuleParamDTO param);
     List<Rule> getListByTimestampLessThan(GetRuleParamDTO param);
     List<Rule> getListByTimestamp(GetRuleParamDTO param);
+    List<Rule> getListFirst10Data(GetRuleParamDTO param);
     long getCount(GetRuleParamDTO paramDTO);
 }

@@ -8,10 +8,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 
 @RequiredArgsConstructor
@@ -66,19 +63,34 @@ public class CustomRuleRepositoryImpl implements CustomRuleRepository {
         StringBuilder sb = new StringBuilder();
         sb.append("select * from rule where created > :timestamp ");
         setFilter(sb, paramMap, param);
-        sb.append("order by created desc limit :limit");
+        sb.append("order by created limit :limit");
         paramMap.put("timestamp", new Timestamp(param.lastKey()));
         paramMap.put("limit", param.limit());
         List<Rule> rules = jdbcClient.sql(sb.toString()).params(paramMap).query(Rule.class).list();
-
         return rules;
     };
+
+    @Override
+    public List<Rule> getListFirst10Data(GetRuleParamDTO param) {
+        Map<String, Object> paramMap = new HashMap<>();
+        StringBuilder sb = new StringBuilder();
+        sb.append("select * from rule where 1=1 ");
+        setFilter(sb, paramMap, param);
+        sb.append("order by created limit :limit");
+        paramMap.put("limit", param.limit());
+        List<Rule> rules = jdbcClient.sql(sb.toString()).params(paramMap).query(Rule.class).list();
+        return rules;
+    }
 
     @Override
     public List<Rule> getListByTimestamp(GetRuleParamDTO param) {
         Map<String, Object> paramMap = new HashMap<>();
         StringBuilder sb = new StringBuilder();
         sb.append("select * from rule where 1=1 ");
+        Optional.ofNullable(param.lastKey()).ifPresent((lastKey) -> {
+            sb.append("and created <= :timestamp ");
+            paramMap.put("timestamp",new Timestamp(param.lastKey()) );
+        });
         setFilter(sb, paramMap, param);
         sb.append("order by created desc limit :limit");
         paramMap.put("limit", param.limit());
