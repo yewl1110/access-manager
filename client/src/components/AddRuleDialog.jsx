@@ -40,9 +40,14 @@ export default function AddRuleDialog({ close, closeCallback }) {
       })
     )
     if (response.ok) {
-      alert({ message: '규칙을 추가했습니다.', severity: 'success' })
-      closeCallback()
-      close()
+      const data = await response.json()
+      if (data.success) {
+        alert({ message: '규칙을 추가했습니다.', severity: 'success' })
+        closeCallback()
+        close()
+      } else {
+        alert({ message: data.message, severity: 'error' })
+      }
     }
   }
 
