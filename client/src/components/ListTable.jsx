@@ -2,13 +2,14 @@ import Grid from '@mui/material/Unstable_Grid2'
 import { Box, Button, Paper } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import AddRuleDialog from './AddRuleDialog'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import SearchForm from './SearchForm'
 import { useForm } from 'react-hook-form'
 import { useYupValidationResolver } from '../hooks/useYupValidationResolver'
 import { listSchema } from '../schema/schema'
 import { listTableColumns } from '../dataGridMetadata'
 import useLoading from '../hooks/useLoading'
+import useAlert from '../hooks/useAlert'
 
 export default function ListTable() {
   const [openModal, setOpenModal] = useState(false)
@@ -18,6 +19,7 @@ export default function ListTable() {
   })
   const [rowsData, setRowsData] = useState(null)
   const { loading } = useLoading()
+  const { alert } = useAlert()
   const resolver = useYupValidationResolver(listSchema)
   const lastKey = useRef([])
   const {
@@ -40,12 +42,15 @@ export default function ListTable() {
       )
     )
     if (response.ok) {
-      const data = await response.json()
-      const [firstData] = data?.data.slice(0, 1)
-      const [lastData] = data?.data.slice(-1)
+      const json = await response.json()
+      const [firstData] = json?.data.slice(0, 1)
+      const [lastData] = json?.data.slice(-1)
       lastKey.current = [firstData?.key, lastData?.key]
 
-      setRowsData(data)
+      setRowsData({
+        ...json,
+        data: json.data.map((row) => ({ ...row, remove: row.id })),
+      })
     }
   }
 
@@ -63,6 +68,23 @@ export default function ListTable() {
   const fetchCurrentPage = (...restParam) => {
     handleSubmit((data) => submit(data, ...restParam))()
   }
+
+  const removeRow = async (id) => {
+    const response = await loading(() =>
+      fetch(process.env.REACT_APP_API_URL + `/access-rule/${id}`, {
+        method: 'DELETE',
+      })
+    )
+    if (response.ok) {
+      alert({ message: '삭제되었습니다.', severity: 'success' })
+      // 현재 페이지를 한번 더 불러온다..
+      const [prevKey] = lastKey.current
+      setValue('lastKey', prevKey)
+      fetchCurrentPage()
+    }
+  }
+
+  const columnHeaders = useMemo(() => listTableColumns({ removeRow }), [])
 
   return (
     <>
@@ -104,7 +126,7 @@ export default function ListTable() {
           <Grid>
             <DataGrid
               rows={rowsData?.data ?? []}
-              columns={listTableColumns}
+              columns={columnHeaders}
               initialState={{
                 pagination: {
                   paginationModel: { page: 0, pageSize: 10 },
@@ -112,12 +134,13 @@ export default function ListTable() {
               }}
               onPaginationModelChange={(model) => {
                 const isNext = paginationModel.page < model.page
-                const [prevKey, nextKey] = lastKey.current
-                setValue('lastKey', isNext ? nextKey : prevKey)
                 setPaginationModel(model)
                 if (model.page > 0) {
+                  const [prevKey, nextKey] = lastKey.current
+                  setValue('lastKey', isNext ? nextKey : prevKey)
                   fetchCurrentPage(isNext ? 'next' : 'prev')
                 } else {
+                  setValue('lastKey', null)
                   fetchCurrentPage()
                 }
               }}
