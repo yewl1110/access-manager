@@ -7,7 +7,10 @@ export const ruleSchema = object({
       '올바른 IP 형식이 아닙니다.'
     )
     .required('필수 항목입니다.'),
-  memo: string().max(20).required('필수 항목입니다.'),
+  memo: string()
+    .min(2, '최소 2글자 이상이여야 합니다.')
+    .max(20)
+    .required('필수 항목입니다.'),
   period: object({
     start: string()
       .datetime('잘못된 날짜 형식입니다.')
@@ -46,6 +49,7 @@ export const filterSchema = object({
     },
   }),
   searchMemo: string()
+    .min(2, '최소 2글자 이상부터 검색 가능합니다.')
     .max(20, '최대 20자까지만 가능합니다.')
     .test({
       test: (value, ctx) => {
