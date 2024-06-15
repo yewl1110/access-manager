@@ -26,7 +26,7 @@ public class Controller {
 
     @PostMapping("/access-rule")
     public ResponseEntity<?> addRule(@Valid @RequestBody AddRuleDTO param) {
-        return ResponseEntity.ok().body(ResultDTO.builder().success(ruleService.addRule(param)).build());
+        return ResponseEntity.ok().body(ruleService.addRule(param));
     }
 
     @PostMapping(value = "/access-rule/list", produces = MediaType.APPLICATION_JSON_VALUE)

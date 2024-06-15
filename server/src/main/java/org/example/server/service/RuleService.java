@@ -1,10 +1,7 @@
 package org.example.server.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.server.dto.AddRuleDTO;
-import org.example.server.dto.GetRuleParamDTO;
-import org.example.server.dto.PageDTO;
-import org.example.server.dto.RuleDTO;
+import org.example.server.dto.*;
 import org.example.server.entity.Rule;
 import org.example.server.mapper.RuleMapper;
 import org.example.server.repository.RuleRepository;
@@ -19,11 +16,18 @@ public class RuleService {
     private final RuleRepository ruleRepository;
     private final RuleMapper ruleMapper;
 
-    public boolean addRule(AddRuleDTO addRuleDTO) {
-        Rule rule = ruleMapper.toEntity(addRuleDTO);
-        ruleRepository.insert(rule);
+    public ResultDTO addRule(AddRuleDTO addRuleDTO) {
+        long count = ruleRepository.count();
+        ResultDTO result;
+        if(count < 50) {
+            Rule rule = ruleMapper.toEntity(addRuleDTO);
+            ruleRepository.insert(rule);
+            result = ResultDTO.builder().success(true).build();
+        } else {
+            result = ResultDTO.builder().success(false).message("규칙은 50개까지만 넣을 수 있습니다.").build();
+        }
 
-        return true;
+        return result;
     }
 
     public PageDTO<RuleDTO> getRules(GetRuleParamDTO param) {
