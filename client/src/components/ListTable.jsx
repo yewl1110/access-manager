@@ -163,6 +163,7 @@ export default function ListTable() {
           close={() => setOpenModal(false)}
           closeCallback={() => {
             if (paginationModel.page === 0) {
+              setValue('lastKey', null)
               fetchCurrentPage()
             }
           }}
