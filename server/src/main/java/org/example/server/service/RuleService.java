@@ -45,4 +45,9 @@ public class RuleService {
         }
         return new PageDTO<>(ruleMapper.toDTOList(rules), ruleRepository.getCount(param));
     }
+
+    public boolean removeRule(Long ruleId) {
+        ruleRepository.deleteById(ruleId);
+        return true;
+    }
 }

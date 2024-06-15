@@ -37,4 +37,9 @@ public class Controller {
     public ResponseEntity<?> getRule(@Valid @RequestBody GetRuleParamDTO param, @PathVariable("option") String option) {
         return ResponseEntity.ok().body(ruleService.getRules(param, option));
     }
+
+    @DeleteMapping("/access-rule/{rule-id:\\d+}")
+    public ResponseEntity<?> removeRule(@PathVariable("rule-id") Long ruleId) {
+        return ResponseEntity.ok().body(ResultDTO.builder().success(ruleService.removeRule(ruleId)).build());
+    }
 }
