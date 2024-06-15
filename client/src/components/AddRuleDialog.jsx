@@ -28,6 +28,7 @@ export default function AddRuleDialog({ close, closeCallback }) {
     watch,
     formState: { errors },
     setValue,
+    setFocus,
   } = useForm({ resolver, mode: 'all' })
 
   const submit = async (data) => {
@@ -59,6 +60,19 @@ export default function AddRuleDialog({ close, closeCallback }) {
     )
   }
 
+  const getIP = async () => {
+    const response = await loading(() =>
+      fetch(process.env.REACT_APP_API_URL + '/ip', {
+        method: 'GET',
+      })
+    )
+    if (response.ok) {
+      const ip = await response.text()
+      setValue('ip', ip)
+      setFocus('ip')
+    }
+  }
+
   return (
     <Dialog open={true} maxWidth={'xs'}>
       <DialogTitle>규칙 추가</DialogTitle>
@@ -85,7 +99,11 @@ export default function AddRuleDialog({ close, closeCallback }) {
                 helperText={errors['ip']?.message}
                 fullWidth
                 max={15}
-                inputProps={{ ...register('ip'), maxLength: 15 }}
+                inputProps={{
+                  ...register('ip'),
+                  maxLength: 15,
+                }}
+                InputLabelProps={{ shrink: !!watch('ip') }}
               />
             </Box>
           </Grid2>
@@ -98,7 +116,13 @@ export default function AddRuleDialog({ close, closeCallback }) {
             }}
           >
             <Box>
-              <Button size={'small'} variant="outlined">
+              <Button
+                size={'small'}
+                variant="outlined"
+                onClick={() => {
+                  getIP()
+                }}
+              >
                 내 IP 등록
               </Button>
             </Box>
