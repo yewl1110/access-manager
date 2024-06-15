@@ -51,11 +51,13 @@ export default function SearchForm({
 
   useEffect(() => {
     resetField('searchMemo')
-    resetField('searchPeriod.start')
-    resetField('searchPeriod.end')
-    setValue('searchPeriod.start', null)
-    setValue('searchPeriod.end', null)
+    setValue('searchPeriod.start', undefined)
+    setValue('searchPeriod.end', undefined)
     clearErrors()
+    if (searchOption === 'period') {
+      setValue('searchPeriod.start', null)
+      setValue('searchPeriod.end', null)
+    }
   }, [searchOption])
 
   useEffect(() => {

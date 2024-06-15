@@ -62,6 +62,7 @@ export const filterSchema = object({
     start: string()
       .datetime()
       .test({
+        message: '차단 시작 날짜는 필수값입니다.',
         test: (value, ctx) => {
           if (ctx.parent.searchOption === 'period') {
             if (!value) {
@@ -78,7 +79,7 @@ export const filterSchema = object({
           return true
         },
       })
-      .nonNullable('차단 시작 날짜는 필수값입니다.'),
+      .optional(),
 
     end: string()
       .datetime()
